@@ -82,25 +82,29 @@ const OrderList = () => {
     setLoading(false);
   }, [navigate]);
 
+  // 주문 목록 새로고침 함수
+  const loadOrders = async () => {
+    if (!selectedStore) return;
+
+    try {
+      const orderData = await orderService.getByMonth(selectedStore.id, monthOffset);
+
+      // 각 주문의 항목도 함께 불러오기
+      const ordersWithItems = await Promise.all(
+        orderData.map(async (order) => {
+          const items = await orderService.getOrderItems(order.id);
+          return { ...order, items };
+        })
+      );
+
+      setOrders(ordersWithItems);
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+    }
+  };
+
   useEffect(() => {
     if (selectedStore) {
-      const loadOrders = async () => {
-        try {
-          const orderData = await orderService.getByMonth(selectedStore.id, monthOffset);
-
-          // 각 주문의 항목도 함께 불러오기
-          const ordersWithItems = await Promise.all(
-            orderData.map(async (order) => {
-              const items = await orderService.getOrderItems(order.id);
-              return { ...order, items };
-            })
-          );
-
-          setOrders(ordersWithItems);
-        } catch (error) {
-          console.error('Failed to load orders:', error);
-        }
-      };
       loadOrders();
     }
   }, [selectedStore, monthOffset]);
@@ -160,8 +164,7 @@ const OrderList = () => {
       }
 
       // 주문 목록 새로고침
-      const orderData = await orderService.getByMonth(selectedStore!.id, monthOffset);
-      setOrders(orderData);
+      await loadOrders();
     } catch (error) {
       console.error('Failed to cancel item:', error);
       toast({
@@ -188,8 +191,7 @@ const OrderList = () => {
       await loadOrderDetails(selectedOrder.id);
 
       // 주문 목록 새로고침
-      const orderData = await orderService.getByMonth(selectedStore!.id, monthOffset);
-      setOrders(orderData);
+      await loadOrders();
 
       // 편집 모드 해제
       setEditingItem(null);
@@ -218,8 +220,7 @@ const OrderList = () => {
       setIsDetailModalOpen(false);
 
       // 주문 목록 새로고침
-      const orderData = await orderService.getByMonth(selectedStore!.id, monthOffset);
-      setOrders(orderData);
+      await loadOrders();
     } catch (error) {
       console.error('Failed to cancel order:', error);
       toast({
@@ -241,8 +242,7 @@ const OrderList = () => {
       });
 
       // 주문 목록 새로고침
-      const orderData = await orderService.getByMonth(selectedStore!.id, monthOffset);
-      setOrders(orderData);
+      await loadOrders();
     } catch (error) {
       console.error('Failed to cancel order:', error);
       toast({
@@ -343,8 +343,7 @@ const OrderList = () => {
       await loadOrderDetails(selectedOrder.id);
 
       // 주문 목록 새로고침
-      const orderData = await orderService.getByMonth(selectedStore!.id, monthOffset);
-      setOrders(orderData);
+      await loadOrders();
     } catch (error) {
       console.error('Failed to add new item:', error);
       toast({

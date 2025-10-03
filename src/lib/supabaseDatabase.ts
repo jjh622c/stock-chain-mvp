@@ -308,6 +308,49 @@ export const orderService = {
     }
   },
 
+  // 주문 취소 (상태를 cancelled로 변경)
+  async cancelOrder(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'cancelled' })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error cancelling order:', error)
+      throw error
+    }
+  },
+
+  // 주문 항목 취소 (삭제 후 주문 총액 재계산)
+  async cancelOrderItem(itemId: string): Promise<{ orderCancelled: boolean }> {
+    // 먼저 항목의 주문 ID를 가져옴
+    const { data: item } = await supabase
+      .from('order_items')
+      .select('order_id')
+      .eq('id', itemId)
+      .single()
+
+    if (!item) {
+      throw new Error('Order item not found')
+    }
+
+    const orderId = item.order_id
+
+    // 항목 삭제
+    await this.deleteOrderItem(itemId)
+
+    // 남은 항목 확인
+    const remainingItems = await this.getOrderItems(orderId)
+
+    // 모든 항목이 삭제되었으면 주문도 취소
+    if (remainingItems.length === 0) {
+      await this.cancelOrder(orderId)
+      return { orderCancelled: true }
+    }
+
+    return { orderCancelled: false }
+  },
+
   // 주문에 새 항목 추가
   async addItemToOrder(orderId: string, newItem: CreateOrderItem): Promise<void> {
     // 새 주문 항목 추가
