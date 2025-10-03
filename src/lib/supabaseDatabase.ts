@@ -158,6 +158,21 @@ export const productService = {
       console.error('Error deleting product:', error)
       throw error
     }
+  },
+
+  async getProductNames(searchTerm: string, limit: number = 5): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('products')
+      .select('name')
+      .ilike('name', `%${searchTerm}%`)
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching product names:', error)
+      throw error
+    }
+
+    return data?.map(p => p.name) || []
   }
 }
 
