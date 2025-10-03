@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim()
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()
 
 console.log('Environment check:', {
   url: supabaseUrl,
   key: supabaseAnonKey ? 'loaded' : 'missing',
-  allEnvVars: import.meta.env
+  urlLength: supabaseUrl?.length,
+  keyLength: supabaseAnonKey?.length
 })
 
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -17,7 +18,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables. Please check your .env file.')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true
+  }
+})
 
 // Database types (will be auto-generated later)
 export type Database = {
