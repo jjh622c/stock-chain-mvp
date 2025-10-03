@@ -306,6 +306,7 @@ const OrderEntry = () => {
                     {suggestions.map((productName, index) => (
                       <button
                         key={index}
+                        type="button"
                         className="w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground"
                         onClick={() => selectSuggestion(productName)}
                       >

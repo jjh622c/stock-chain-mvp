@@ -173,6 +173,21 @@ export const productService = {
     }
 
     return data?.map(p => p.name) || []
+  },
+
+  async getProductPrice(productName: string): Promise<number | null> {
+    const { data, error } = await supabase
+      .from('products')
+      .select('price')
+      .eq('name', productName)
+      .single()
+
+    if (error) {
+      console.error('Error fetching product price:', error)
+      return null
+    }
+
+    return data?.price || null
   }
 }
 
