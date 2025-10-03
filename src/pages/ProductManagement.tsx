@@ -31,7 +31,7 @@ import {
 import { ArrowLeft, Plus, Edit, Trash2, Search, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { productService, Product } from "@/lib/supabaseDatabase";
+import { productService, Product, CreateProduct } from "@/lib/supabaseDatabase";
 
 const ProductManagement = () => {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ const ProductManagement = () => {
   const [formData, setFormData] = useState<CreateProduct>({
     name: "",
     category: "",
-    unit_price: 0
+    price: 0
   });
 
   useEffect(() => {
@@ -84,12 +84,12 @@ const ProductManagement = () => {
     setFormData({
       name: "",
       category: "",
-      unit_price: 0
+      price: 0
     });
   };
 
   const handleAdd = async () => {
-    if (!formData.name || !formData.category || formData.unit_price <= 0) {
+    if (!formData.name || !formData.category || formData.price <= 0) {
       toast({
         title: "입력 오류",
         description: "모든 필드를 올바르게 입력해주세요.",
@@ -118,7 +118,7 @@ const ProductManagement = () => {
   };
 
   const handleEdit = async () => {
-    if (!editingProduct || !formData.name || !formData.category || formData.unit_price <= 0) {
+    if (!editingProduct || !formData.name || !formData.category || formData.price <= 0) {
       toast({
         title: "입력 오류",
         description: "모든 필드를 올바르게 입력해주세요.",
@@ -174,7 +174,7 @@ const ProductManagement = () => {
     setFormData({
       name: product.name,
       category: product.category,
-      unit_price: product.unit_price
+      price: product.price
     });
     setIsEditDialogOpen(true);
   };
@@ -294,8 +294,8 @@ const ProductManagement = () => {
                       <Input
                         id="add-price"
                         type="number"
-                        value={formData.unit_price || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, unit_price: Number(e.target.value) }))}
+                        value={formData.price || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
                         placeholder="39500"
                       />
                     </div>
@@ -352,7 +352,7 @@ const ProductManagement = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium text-primary">
-                        {product.unit_price.toLocaleString()}원
+                        {product.price.toLocaleString()}원
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(product.created_at).toLocaleDateString('ko-KR')}
@@ -430,8 +430,8 @@ const ProductManagement = () => {
                 <Input
                   id="edit-price"
                   type="number"
-                  value={formData.unit_price || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, unit_price: Number(e.target.value) }))}
+                  value={formData.price || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
                   placeholder="39500"
                 />
               </div>

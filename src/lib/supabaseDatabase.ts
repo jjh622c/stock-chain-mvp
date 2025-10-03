@@ -18,6 +18,12 @@ export interface Product {
   updated_at: string
 }
 
+export interface CreateProduct {
+  name: string
+  price: number
+  category: string
+}
+
 export interface Order {
   id: string
   store_id: string
