@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -248,6 +249,29 @@ const OrderList = () => {
       toast({
         title: "취소 실패",
         description: "주문 취소 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // 주문 상태 토글
+  const handleToggleOrderStatus = async (orderId: string, currentStatus: 'completed' | 'cancelled') => {
+    try {
+      const newStatus = currentStatus === 'completed' ? 'cancelled' : 'completed';
+      await orderService.updateOrderStatus(orderId, newStatus);
+
+      toast({
+        title: "상태 변경 완료",
+        description: `주문이 ${newStatus === 'completed' ? '완료' : '취소'} 상태로 변경되었습니다.`
+      });
+
+      // 주문 목록 새로고침
+      await loadOrders();
+    } catch (error) {
+      console.error('Failed to toggle order status:', error);
+      toast({
+        title: "상태 변경 실패",
+        description: "주문 상태 변경 중 오류가 발생했습니다.",
         variant: "destructive"
       });
     }
@@ -573,12 +597,19 @@ const OrderList = () => {
                         {order.total_amount.toLocaleString()}원
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant={order.status === "completed" ? "default" : "secondary"}
-                          className={order.status === "completed" ? "bg-green-500" : ""}
-                        >
-                          {order.status === "completed" ? "완료" : "취소"}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={order.status === "completed"}
+                            onCheckedChange={() => handleToggleOrderStatus(order.id, order.status)}
+                            id={`order-${order.id}`}
+                          />
+                          <label
+                            htmlFor={`order-${order.id}`}
+                            className="text-sm font-medium cursor-pointer"
+                          >
+                            {order.status === "completed" ? "완료" : "미완료"}
+                          </label>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {order.status === "completed" && (

@@ -321,6 +321,19 @@ export const orderService = {
     }
   },
 
+  // 주문 상태 업데이트
+  async updateOrderStatus(id: string, status: 'completed' | 'cancelled'): Promise<void> {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error updating order status:', error)
+      throw error
+    }
+  },
+
   // 주문 항목 취소 (삭제 후 주문 총액 재계산)
   async cancelOrderItem(itemId: string): Promise<{ orderCancelled: boolean }> {
     // 먼저 항목의 주문 ID를 가져옴
@@ -446,7 +459,7 @@ export const orderService = {
     }
   },
 
-  // 오늘 주문 요약
+  // 오늘 주문 요약 (완료된 주문만)
   async getTodaysSummary(storeId: string) {
     const today = new Date().toISOString().split('T')[0]
 
@@ -455,6 +468,7 @@ export const orderService = {
       .select('total_amount, status')
       .eq('store_id', storeId)
       .eq('order_date', today)
+      .eq('status', 'completed')
 
     if (error) {
       console.error('Error fetching today summary:', error)
@@ -470,7 +484,7 @@ export const orderService = {
     }
   },
 
-  // 일별 통계 (한 달치)
+  // 일별 통계 (완료된 주문만)
   async getDailyStats(storeId: string, days: number = 30) {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
@@ -480,6 +494,7 @@ export const orderService = {
       .from('orders')
       .select('order_date, total_amount')
       .eq('store_id', storeId)
+      .eq('status', 'completed')
       .gte('order_date', startDateStr)
       .order('order_date')
 
