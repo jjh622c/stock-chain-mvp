@@ -172,7 +172,7 @@ const Statistics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {weeklyAvg.toLocaleString()}원
+                {(weeklyAvg || 0).toLocaleString()}원
               </div>
               <p className="text-xs text-muted-foreground">일 평균 매출</p>
             </CardContent>
@@ -185,7 +185,7 @@ const Statistics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-success">
-                {monthlyTotal.toLocaleString()}원
+                {(monthlyTotal || 0).toLocaleString()}원
               </div>
               <p className="text-xs text-success">
                 {monthlyOrders}개 주문
@@ -200,7 +200,7 @@ const Statistics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {avgDaily.toLocaleString()}원
+                {(avgDaily || 0).toLocaleString()}원
               </div>
               <p className="text-xs text-muted-foreground">일 평균 매출</p>
             </CardContent>
@@ -359,25 +359,25 @@ const Statistics = () => {
                   <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-sm font-medium">오늘</span>
                     <span className="font-bold text-primary">
-                      {todaysSummary.totalAmount.toLocaleString()}원
+                      {(todaysSummary?.totalAmount || 0).toLocaleString()}원
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-sm font-medium">주간 평균</span>
                     <span className="font-bold">
-                      {weeklyAvg.toLocaleString()}원
+                      {(weeklyAvg || 0).toLocaleString()}원
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-sm font-medium">월간 총액</span>
                     <span className="font-bold text-success">
-                      {monthlyTotal.toLocaleString()}원
+                      {(monthlyTotal || 0).toLocaleString()}원
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium">월간 평균</span>
                     <span className="font-bold">
-                      {avgDaily.toLocaleString()}원
+                      {(avgDaily || 0).toLocaleString()}원
                     </span>
                   </div>
                 </div>
