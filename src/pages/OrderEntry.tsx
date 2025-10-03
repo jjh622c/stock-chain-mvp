@@ -103,7 +103,7 @@ const OrderEntry = () => {
       if (!existingProduct) {
         const newProduct = {
           name: currentItem.product_name,
-          category: productService.getCategoryFromName(currentItem.product_name),
+          category: getCategoryFromName(currentItem.product_name),
           unit_price: currentItem.unit_price,
           description: `주문 등록 시 자동 생성된 상품`
         };
