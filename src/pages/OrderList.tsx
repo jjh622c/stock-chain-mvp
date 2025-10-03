@@ -569,10 +569,10 @@ const OrderList = () => {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {format(new Date(order.order_date), "MM월 dd일", { locale: ko })}
+                            {format(new Date(order.created_at), "MM월 dd일", { locale: ko })}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {format(new Date(order.order_date), "HH:mm", { locale: ko })}
+                            {format(new Date(order.created_at), "HH:mm", { locale: ko })}
                           </div>
                         </div>
                       </TableCell>
