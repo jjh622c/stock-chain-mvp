@@ -232,23 +232,27 @@ const OrderList = () => {
     }
   };
 
-  // 목록에서 바로 주문 취소 (원클릭)
-  const handleQuickCancelOrder = async (orderId: string) => {
+  // 목록에서 바로 주문 삭제 (원클릭)
+  const handleQuickDeleteOrder = async (orderId: string) => {
+    if (!confirm("정말로 이 주문을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+      return;
+    }
+
     try {
-      await orderService.cancelOrder(orderId);
+      await orderService.delete(orderId);
 
       toast({
-        title: "주문 취소 완료",
-        description: "주문이 취소되었습니다."
+        title: "주문 삭제 완료",
+        description: "주문이 완전히 삭제되었습니다."
       });
 
       // 주문 목록 새로고침
       await loadOrders();
     } catch (error) {
-      console.error('Failed to cancel order:', error);
+      console.error('Failed to delete order:', error);
       toast({
-        title: "취소 실패",
-        description: "주문 취소 중 오류가 발생했습니다.",
+        title: "삭제 실패",
+        description: "주문 삭제 중 오류가 발생했습니다.",
         variant: "destructive"
       });
     }
@@ -617,7 +621,7 @@ const OrderList = () => {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleQuickCancelOrder(order.id);
+                            handleQuickDeleteOrder(order.id);
                           }}
                           className="h-8 w-8 p-0"
                         >
