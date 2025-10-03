@@ -96,21 +96,21 @@ const Statistics = () => {
            statDate.getFullYear() === currentMonth.getFullYear();
   });
 
-  const monthlyTotal = monthlyStats.reduce((sum, stat) => sum + stat.totalAmount, 0);
-  const monthlyOrders = monthlyStats.reduce((sum, stat) => sum + stat.orderCount, 0);
+  const monthlyTotal = monthlyStats.reduce((sum, stat) => sum + (stat.totalAmount || 0), 0);
+  const monthlyOrders = monthlyStats.reduce((sum, stat) => sum + (stat.orderCount || 0), 0);
   const avgDaily = monthlyStats.length > 0 ? monthlyTotal / monthlyStats.length : 0;
 
   // Calculate weekly stats (last 7 days)
   const last7Days = dailyStats.slice(-7);
-  const weeklyTotal = last7Days.reduce((sum, stat) => sum + stat.totalAmount, 0);
+  const weeklyTotal = last7Days.reduce((sum, stat) => sum + (stat.totalAmount || 0), 0);
   const weeklyAvg = last7Days.length > 0 ? weeklyTotal / last7Days.length : 0;
 
   // Prepare chart data - format data for chart display
   const chartData = monthlyStats.map(stat => ({
     date: format(new Date(stat.date), "MM/dd", { locale: ko }),
     fullDate: stat.date,
-    orderCount: stat.orderCount,
-    totalAmount: stat.totalAmount,
+    orderCount: stat.orderCount || 0,
+    totalAmount: stat.totalAmount || 0,
     displayDate: format(new Date(stat.date), "MM월 dd일", { locale: ko })
   })).sort((a, b) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime());
 
@@ -121,8 +121,8 @@ const Statistics = () => {
       return (
         <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
           <p className="font-medium">{data.displayDate}</p>
-          <p className="text-primary">주문 수: {data.orderCount}개</p>
-          <p className="text-success">매출: {data.totalAmount.toLocaleString()}원</p>
+          <p className="text-primary">주문 수: {data.orderCount || 0}개</p>
+          <p className="text-success">매출: {(data.totalAmount || 0).toLocaleString()}원</p>
         </div>
       );
     }
@@ -157,10 +157,10 @@ const Statistics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">
-                {todaysSummary.totalAmount.toLocaleString()}원
+                {(todaysSummary?.totalAmount || 0).toLocaleString()}원
               </div>
               <p className="text-xs text-muted-foreground">
-                {todaysSummary.orderCount}개 주문
+                {todaysSummary?.orderCount || 0}개 주문
               </p>
             </CardContent>
           </Card>
@@ -188,7 +188,7 @@ const Statistics = () => {
                 {(monthlyTotal || 0).toLocaleString()}원
               </div>
               <p className="text-xs text-success">
-                {monthlyOrders}개 주문
+                {monthlyOrders || 0}개 주문
               </p>
             </CardContent>
           </Card>
@@ -305,8 +305,8 @@ const Statistics = () => {
               <CardHeader>
                 <CardTitle>일별 주문 현황 (최근 30일)</CardTitle>
                 <CardDescription>
-                  총 {dailyStats.reduce((sum, stat) => sum + stat.orderCount, 0)}개 주문 •
-                  {dailyStats.reduce((sum, stat) => sum + stat.totalAmount, 0).toLocaleString()}원
+                  총 {dailyStats.reduce((sum, stat) => sum + (stat.orderCount || 0), 0)}개 주문 •
+                  {dailyStats.reduce((sum, stat) => sum + (stat.totalAmount || 0), 0).toLocaleString()}원
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -324,16 +324,16 @@ const Statistics = () => {
                               {format(new Date(stat.date), "MM월 dd일 (E)", { locale: ko })}
                             </h4>
                             <p className="text-sm text-muted-foreground">
-                              {stat.orderCount}개 주문
+                              {stat.orderCount || 0}개 주문
                             </p>
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold">
-                              {stat.totalAmount.toLocaleString()}원
+                              {(stat.totalAmount || 0).toLocaleString()}원
                             </div>
-                            {stat.orderCount > 0 && (
+                            {(stat.orderCount || 0) > 0 && (
                               <Badge variant="outline" className="text-xs">
-                                주문당 평균 {Math.round(stat.totalAmount / stat.orderCount).toLocaleString()}원
+                                주문당 평균 {Math.round((stat.totalAmount || 0) / (stat.orderCount || 1)).toLocaleString()}원
                               </Badge>
                             )}
                           </div>

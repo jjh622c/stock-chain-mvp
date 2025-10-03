@@ -242,10 +242,23 @@ export const orderService = {
     return data || []
   },
 
+  // 주문 상세 조회 (주문 정보 + 주문 항목)
+  async getOrderDetails(orderId: string): Promise<{ order: Order; items: OrderItem[] } | null> {
+    const order = await this.getById(orderId)
+    if (!order) return null
+
+    const items = await this.getOrderItems(orderId)
+
+    return { order, items }
+  },
+
   // 새 주문 생성
   async create(storeId: string, items: CreateOrderItem[]): Promise<Order> {
     // 총액 계산
     const totalAmount = items.reduce((sum, item) => sum + item.total_price, 0)
+
+    // 오늘 날짜 (YYYY-MM-DD 형식)
+    const today = new Date().toISOString().split('T')[0]
 
     // 주문 생성
     const { data: order, error: orderError } = await supabase
@@ -253,7 +266,8 @@ export const orderService = {
       .insert({
         store_id: storeId,
         total_amount: totalAmount,
-        status: 'completed'
+        status: 'completed',
+        order_date: today
       })
       .select()
       .single()
@@ -404,27 +418,26 @@ export const orderService = {
       throw error
     }
 
-    const totalOrders = data.length
-    const totalRevenue = data.reduce((sum, order) => sum + order.total_amount, 0)
+    const orderCount = data.length
+    const totalAmount = data.reduce((sum, order) => sum + order.total_amount, 0)
 
     return {
-      totalOrders,
-      totalRevenue,
-      averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0
+      orderCount,
+      totalAmount
     }
   },
 
   // 일별 통계 (한 달치)
-  async getDailyStats(storeId: string) {
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    const startDate = thirtyDaysAgo.toISOString().split('T')[0]
+  async getDailyStats(storeId: string, days: number = 30) {
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+    const startDateStr = startDate.toISOString().split('T')[0]
 
     const { data, error } = await supabase
       .from('orders')
       .select('order_date, total_amount')
       .eq('store_id', storeId)
-      .gte('order_date', startDate)
+      .gte('order_date', startDateStr)
       .order('order_date')
 
     if (error) {
@@ -436,14 +449,40 @@ export const orderService = {
     const dailyStats = data.reduce((acc, order) => {
       const date = order.order_date
       if (!acc[date]) {
-        acc[date] = { date, orders: 0, revenue: 0 }
+        acc[date] = { date, orderCount: 0, totalAmount: 0 }
       }
-      acc[date].orders += 1
-      acc[date].revenue += order.total_amount
+      acc[date].orderCount += 1
+      acc[date].totalAmount += order.total_amount
       return acc
-    }, {} as Record<string, { date: string; orders: number; revenue: number }>)
+    }, {} as Record<string, { date: string; orderCount: number; totalAmount: number }>)
 
     return Object.values(dailyStats)
+  },
+
+  // 월별 주문 조회 (monthOffset: 0=이번달, 1=저번달, 2=저저번달)
+  async getByMonth(storeId: string, monthOffset: number = 0): Promise<Order[]> {
+    const now = new Date()
+    const targetDate = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1)
+    const startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1)
+    const endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0)
+
+    const startDateStr = startDate.toISOString().split('T')[0]
+    const endDateStr = endDate.toISOString().split('T')[0]
+
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('store_id', storeId)
+      .gte('order_date', startDateStr)
+      .lte('order_date', endDateStr)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching orders by month:', error)
+      throw error
+    }
+
+    return data || []
   }
 }
 

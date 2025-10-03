@@ -87,7 +87,16 @@ const OrderList = () => {
       const loadOrders = async () => {
         try {
           const orderData = await orderService.getByMonth(selectedStore.id, monthOffset);
-          setOrders(orderData);
+
+          // 각 주문의 항목도 함께 불러오기
+          const ordersWithItems = await Promise.all(
+            orderData.map(async (order) => {
+              const items = await orderService.getOrderItems(order.id);
+              return { ...order, items };
+            })
+          );
+
+          setOrders(ordersWithItems);
         } catch (error) {
           console.error('Failed to load orders:', error);
         }
@@ -99,8 +108,23 @@ const OrderList = () => {
   // 주문 상세 정보 로드
   const loadOrderDetails = async (orderId: string) => {
     try {
-      const orderDetails = await orderService.getOrderDetails(orderId);
-      setSelectedOrder(orderDetails);
+      const result = await orderService.getOrderDetails(orderId);
+      if (!result) {
+        toast({
+          title: "오류",
+          description: "주문을 찾을 수 없습니다.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // getOrderDetails가 { order, items } 형태로 반환하므로 변환
+      const orderWithItems: OrderWithItems = {
+        ...result.order,
+        items: result.items
+      };
+
+      setSelectedOrder(orderWithItems);
       setIsDetailModalOpen(true);
     } catch (error) {
       console.error('Failed to load order details:', error);
