@@ -164,12 +164,18 @@ export const productService = {
 
   async getProductNames(searchTerm: string, limit: number = 5): Promise<string[]> {
     // 최근 주문된 상품 이름 가져오기 (중복 제거)
-    const { data: recentOrders, error: orderError } = await supabase
+    let orderQuery = supabase
       .from('order_items')
       .select('product_name, created_at')
-      .ilike('product_name', `%${searchTerm}%`)
       .order('created_at', { ascending: false })
       .limit(limit * 3)
+
+    // 검색어가 있으면 필터링
+    if (searchTerm.length > 0) {
+      orderQuery = orderQuery.ilike('product_name', `%${searchTerm}%`)
+    }
+
+    const { data: recentOrders, error: orderError } = await orderQuery
 
     if (orderError) {
       console.error('Error fetching recent orders:', orderError)
@@ -182,11 +188,17 @@ export const productService = {
 
     // 부족한 경우 products 테이블에서 추가로 가져오기
     if (recentNames.length < limit) {
-      const { data: products, error } = await supabase
+      let productQuery = supabase
         .from('products')
         .select('name')
-        .ilike('name', `%${searchTerm}%`)
         .limit(limit * 2)
+
+      // 검색어가 있으면 필터링
+      if (searchTerm.length > 0) {
+        productQuery = productQuery.ilike('name', `%${searchTerm}%`)
+      }
+
+      const { data: products, error } = await productQuery
 
       if (!error && products) {
         const productNames = products.map(p => p.name)

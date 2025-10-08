@@ -58,17 +58,26 @@ const OrderEntry = () => {
   const handleNameChange = async (value: string) => {
     setCurrentItem(prev => ({ ...prev, product_name: value }));
 
-    if (value.length > 0) {
+    try {
+      const productNames = await productService.getProductNames(value, 5);
+      setSuggestions(productNames);
+      setShowSuggestions(productNames.length > 0);
+    } catch (error) {
+      console.error('Failed to fetch product suggestions:', error);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleNameFocus = async () => {
+    // 포커스 시 빈 문자열로 최근 주문 목록 조회
+    if (currentItem.product_name.length === 0) {
       try {
-        const productNames = await productService.getProductNames(value, 5);
+        const productNames = await productService.getProductNames('', 5);
         setSuggestions(productNames);
         setShowSuggestions(productNames.length > 0);
       } catch (error) {
         console.error('Failed to fetch product suggestions:', error);
-        setShowSuggestions(false);
       }
-    } else {
-      setShowSuggestions(false);
     }
   };
 
@@ -302,6 +311,7 @@ const OrderEntry = () => {
                   id="name"
                   value={currentItem.product_name}
                   onChange={(e) => handleNameChange(e.target.value)}
+                  onFocus={handleNameFocus}
                   placeholder="예: 김치"
                   className="mt-1"
                 />
