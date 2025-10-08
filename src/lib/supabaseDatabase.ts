@@ -14,6 +14,7 @@ export interface Product {
   name: string
   price: number
   category: string
+  supplier?: string
   created_at: string
   updated_at: string
 }
@@ -22,6 +23,7 @@ export interface CreateProduct {
   name: string
   price: number
   category: string
+  supplier?: string
 }
 
 export interface Order {
@@ -161,18 +163,43 @@ export const productService = {
   },
 
   async getProductNames(searchTerm: string, limit: number = 5): Promise<string[]> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('name')
-      .ilike('name', `%${searchTerm}%`)
-      .limit(limit)
+    // 최근 주문된 상품 이름 가져오기 (중복 제거)
+    const { data: recentOrders, error: orderError } = await supabase
+      .from('order_items')
+      .select('product_name, created_at')
+      .ilike('product_name', `%${searchTerm}%`)
+      .order('created_at', { ascending: false })
+      .limit(limit * 3)
 
-    if (error) {
-      console.error('Error fetching product names:', error)
-      throw error
+    if (orderError) {
+      console.error('Error fetching recent orders:', orderError)
     }
 
-    return data?.map(p => p.name) || []
+    // 최근 주문 상품 이름 (중복 제거)
+    const recentNames = recentOrders
+      ? Array.from(new Set(recentOrders.map(o => o.product_name)))
+      : []
+
+    // 부족한 경우 products 테이블에서 추가로 가져오기
+    if (recentNames.length < limit) {
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('name')
+        .ilike('name', `%${searchTerm}%`)
+        .limit(limit * 2)
+
+      if (!error && products) {
+        const productNames = products.map(p => p.name)
+        // 이미 있는 것 제외하고 추가
+        productNames.forEach(name => {
+          if (!recentNames.includes(name) && recentNames.length < limit) {
+            recentNames.push(name)
+          }
+        })
+      }
+    }
+
+    return recentNames.slice(0, limit)
   },
 
   async getProductPrice(productName: string): Promise<number | null> {
@@ -188,6 +215,21 @@ export const productService = {
     }
 
     return data?.price || null
+  },
+
+  async getProductDetails(productName: string): Promise<{ price: number; category: string; supplier?: string } | null> {
+    const { data, error } = await supabase
+      .from('products')
+      .select('price, category, supplier')
+      .eq('name', productName)
+      .single()
+
+    if (error) {
+      console.error('Error fetching product details:', error)
+      return null
+    }
+
+    return data || null
   }
 }
 

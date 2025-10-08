@@ -47,7 +47,8 @@ const ProductManagement = () => {
   const [formData, setFormData] = useState<CreateProduct>({
     name: "",
     category: "",
-    price: 0
+    price: 0,
+    supplier: ""
   });
 
   useEffect(() => {
@@ -84,7 +85,8 @@ const ProductManagement = () => {
     setFormData({
       name: "",
       category: "",
-      price: 0
+      price: 0,
+      supplier: ""
     });
   };
 
@@ -174,7 +176,8 @@ const ProductManagement = () => {
     setFormData({
       name: product.name,
       category: product.category,
-      price: product.price
+      price: product.price,
+      supplier: product.supplier || ""
     });
     setIsEditDialogOpen(true);
   };
@@ -290,6 +293,15 @@ const ProductManagement = () => {
                       </Select>
                     </div>
                     <div className="grid gap-2">
+                      <Label htmlFor="add-supplier">구입처</Label>
+                      <Input
+                        id="add-supplier"
+                        value={formData.supplier || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, supplier: e.target.value }))}
+                        placeholder="예: 한국식품"
+                      />
+                    </div>
+                    <div className="grid gap-2">
                       <Label htmlFor="add-price">단가 (원)</Label>
                       <Input
                         id="add-price"
@@ -335,6 +347,7 @@ const ProductManagement = () => {
                   <TableRow>
                     <TableHead>상품명</TableHead>
                     <TableHead>카테고리</TableHead>
+                    <TableHead>구입처</TableHead>
                     <TableHead>단가</TableHead>
                     <TableHead>등록일</TableHead>
                     <TableHead>작업</TableHead>
@@ -350,6 +363,9 @@ const ProductManagement = () => {
                         <Badge variant="outline">
                           {product.category}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {product.supplier || "-"}
                       </TableCell>
                       <TableCell className="font-medium text-primary">
                         {product.price.toLocaleString()}원
@@ -424,6 +440,15 @@ const ProductManagement = () => {
                     <SelectItem value="기타">기타</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-supplier">구입처</Label>
+                <Input
+                  id="edit-supplier"
+                  value={formData.supplier || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, supplier: e.target.value }))}
+                  placeholder="예: 한국식품"
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="edit-price">단가 (원)</Label>

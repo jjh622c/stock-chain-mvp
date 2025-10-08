@@ -25,6 +25,8 @@ const OrderEntry = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [currentItem, setCurrentItem] = useState({
     product_name: "",
+    category: "",
+    supplier: "",
     quantity: 1,
     unit_price: 0,
     total_price: 0
@@ -71,13 +73,15 @@ const OrderEntry = () => {
   };
 
   const selectSuggestion = async (productName: string) => {
-    // 선택된 상품의 기본 단가 조회
-    const defaultPrice = await productService.getProductPrice(productName);
+    // 선택된 상품의 상세 정보 조회
+    const productDetails = await productService.getProductDetails(productName);
 
     setCurrentItem(prev => ({
       ...prev,
       product_name: productName,
-      unit_price: defaultPrice || prev.unit_price
+      unit_price: productDetails?.price || prev.unit_price,
+      category: productDetails?.category || getCategoryFromName(productName),
+      supplier: productDetails?.supplier || ""
     }));
     setShowSuggestions(false);
   };
@@ -103,9 +107,9 @@ const OrderEntry = () => {
       if (!existingProduct) {
         const newProduct = {
           name: currentItem.product_name,
-          category: getCategoryFromName(currentItem.product_name),
-          unit_price: currentItem.unit_price,
-          description: `주문 등록 시 자동 생성된 상품`
+          category: currentItem.category || getCategoryFromName(currentItem.product_name),
+          price: currentItem.unit_price,
+          supplier: currentItem.supplier || undefined
         };
 
         await productService.create(newProduct);
@@ -128,6 +132,8 @@ const OrderEntry = () => {
       setOrderItems(prev => [...prev, newItem]);
       setCurrentItem({
         product_name: "",
+        category: "",
+        supplier: "",
         quantity: 1,
         unit_price: 0,
         total_price: 0
@@ -315,6 +321,28 @@ const OrderEntry = () => {
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div>
+                <Label htmlFor="category">카테고리</Label>
+                <Input
+                  id="category"
+                  value={currentItem.category}
+                  onChange={(e) => setCurrentItem(prev => ({ ...prev, category: e.target.value }))}
+                  placeholder="예: 육가공품"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="supplier">구입처</Label>
+                <Input
+                  id="supplier"
+                  value={currentItem.supplier}
+                  onChange={(e) => setCurrentItem(prev => ({ ...prev, supplier: e.target.value }))}
+                  placeholder="예: 한국식품"
+                  className="mt-1"
+                />
               </div>
 
               <div>
